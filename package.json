@@ -1,18 +1,14 @@
 {
-  "name": "eos",
-  "version": "1.0.0",
-  "author": "",
-  "main": "src/index.ts",
-  "description": "",
-  "license": "ISC",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "name": "tech-console",
+  "module": "src/index.ts",
+  "type": "module",
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
   },
   "dependencies": {
-    "@types/node": "^20.12.8",
-    "osc": "^2.4.4",
-    "prompt-sync": "^4.2.0",
-    "typescript": "^5.4.5"
-  },
-  "type": "module"
+    "osc": "^2.4.4"
+  }
 }

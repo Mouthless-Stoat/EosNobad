@@ -1,4 +1,4 @@
-import { OSCArgVal, OSCMsg, TCPSocket } from "./server"
+import { type OSCArgVal, type OSCMsg, TCPSocket } from "./server"
 
 /**
  * Enum store all eos OSC key name
@@ -25,19 +25,30 @@ export class EosConsole {
         this.server = new TCPSocket(host, port)
     }
 
-    connect() {
-        this.server.onMsg("/eos/out/cmd", msg => console.log(msg))
+    /**
+     * Connect to the eos console using the host and port define earlier
+     * */
+    async connect() {
+        this.server.onMsg("/eos/out/cmd", msg => {
+            this._commandLine = msg.args[0] as string
+        })
         this.server.connect()
+        return new Promise<void>(res =>
+            this.server.on("ready", () => {
+                res()
+                console.log("Im Ready")
+            }),
+        )
     }
 
     /**
-     * Send a OSC message to the console. Message is already prepend with "/eos/"
+     * Send a OSC generic message to the console. Message is already prepend with "/eos/"
      * @param message The message to send
      * @param args The argument with that message
      * */
     send(message: OSCMsg): void
-    send(message: string, args: OSCArgVal[]): void
-    send(message: string | OSCMsg, args?: OSCArgVal[]) {
+    send(message: string, args?: OSCArgVal[]): void
+    send(message: string | OSCMsg, args: OSCArgVal[] = []) {
         if (typeof message !== "string") {
             let t = message
             message = t.message
@@ -46,6 +57,23 @@ export class EosConsole {
         this.server.send("/eos/" + message, args)
     }
 
+    /**
+     * Send text to be inputed into the command line
+     * */
+    sendCmd(command: string) {
+        this.send("cmd", [command])
+    }
+
+    /**
+     * Execute a command on the console. A terminator is already appended and the command line is clear
+     * */
+    executeCmd(command: string) {
+        this.send("newcmd", [command + "#"])
+    }
+
+    /**
+     * Disconnect from the console
+     * */
     disconnect() {
         this.server.disconnect()
     }

@@ -1,6 +1,7 @@
-//@ts-ignore no type
+//@ts-ignore no type declaration
 import { TCPSocketPort } from "osc"
 
+/** Type a OSC argument can be */
 export type OSCArgVal = number | string
 
 /**
@@ -78,6 +79,11 @@ export class TCPSocket {
         })
     }
 
+    /**
+     * Send a message to the socket
+     * @param message The message to send
+     * @param [args=[]] The arguments to send with this message
+     * */
     send(message: string, args: OSCArgVal[] = []) {
         this.server.send({
             address: message,
