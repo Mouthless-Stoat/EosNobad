@@ -3,17 +3,30 @@ import { TCPSocketPort } from "osc"
 
 export type OSCArgVal = number | string
 
-export enum OSCArgChar {
-    int = "i",
-    float = "f",
-    string = "s",
-}
-
-export type OSCArg = { type: OSCArgVal; value: OSCArgVal }
-
+/**
+ * OSC Message to interface with. Basically just translate from `address` to `message`
+ * */
 export interface OSCMsg {
     message: string
     args: OSCArgVal[]
+}
+
+/**
+ * OSC Message that the server send a receive.
+ * */
+export interface OSCSerMsg {
+    address: string
+    args: OSCArgVal[]
+}
+
+/**
+ * Convert server message to normal message
+ * */
+function serMsgToMsg(msg: OSCSerMsg): OSCMsg {
+    return {
+        message: msg.address,
+        args: msg.args,
+    } as OSCMsg
 }
 
 /**
@@ -58,38 +71,17 @@ export class TCPSocket {
      * @callback The callback when `message` is receive
      * */
     onMsg(message: string, callback: (msg: OSCMsg) => void) {
-        this.on("message", (msg: OSCMsg) => {
-            if (msg.message === message) {
-                callback(msg)
+        this.on("message", (msg: OSCSerMsg) => {
+            if (msg.address === message) {
+                callback(serMsgToMsg(msg))
             }
         })
     }
 
     send(message: string, args: OSCArgVal[] = []) {
-        // process the args
-        let oscArgs: OSCArg[] = []
-        for (const arg of args) {
-            let argType: OSCArgChar
-            switch (typeof arg) {
-                case "string":
-                    argType = OSCArgChar.string
-                    break
-                case "number":
-                    argType = arg % 1 === 0 ? OSCArgChar.int : OSCArgChar.float
-            }
-
-            oscArgs.push({
-                type: argType,
-                value: arg,
-            })
-        }
-
-        // add a slash incase user forgot
-        if (!message.startsWith("/")) message = "/" + message
-
         this.server.send({
             address: message,
-            args: oscArgs,
+            args: args,
         })
     }
     /**
