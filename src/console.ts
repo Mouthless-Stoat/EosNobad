@@ -1,4 +1,9 @@
-import { type OSCArgVal, type OSCMsg, TCPSocket } from "./server"
+import {
+    type OSCArgVal,
+    type OSCMsg,
+    TCPSocket,
+    type listenerFunc,
+} from "./server"
 
 /**
  * Enum store all eos OSC key name
@@ -30,7 +35,7 @@ export class EosConsole {
      * */
     async connect() {
         this.server.onMsg("/eos/out/cmd", msg => {
-            this._commandLine = msg.args[0] as string
+            this._commandLine = msg[0] as string
         })
         this.server.connect()
         return new Promise<void>(res =>
@@ -69,6 +74,18 @@ export class EosConsole {
      * */
     executeCmd(command: string) {
         this.send("newcmd", [command + "#"])
+    }
+
+    /**
+     * Ask the console `message` and listen `answer`
+     * */
+    async ask(message: string, answer?: string) {
+        this.send(message)
+        return new Promise<OSCArgVal[]>(res =>
+            this.server.onceMsg("/eos/" + (answer ?? "out/" + message), msg =>
+                res(msg),
+            ),
+        )
     }
 
     /**

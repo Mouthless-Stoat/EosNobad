@@ -20,15 +20,7 @@ export interface OSCSerMsg {
     args: OSCArgVal[]
 }
 
-/**
- * Convert server message to normal message
- * */
-function serMsgToMsg(msg: OSCSerMsg): OSCMsg {
-    return {
-        message: msg.address,
-        args: msg.args,
-    } as OSCMsg
-}
+export type listenerFunc = (msg: OSCArgVal[]) => void
 
 /**
  * A TCP port to revieve and send OSC messages
@@ -37,6 +29,7 @@ export class TCPSocket {
     host: string
     port: number
     private server: any
+    private listener: Set<string> = new Set()
 
     constructor(host: string, port: number) {
         this.host = host
@@ -53,6 +46,11 @@ export class TCPSocket {
      * */
     connect() {
         this.server.open() // open the server
+        this.on("message", (msg: OSCSerMsg) => {
+            this.listener.forEach(m => {
+                if (msg.address === m) this.server.emit(m, msg.args)
+            })
+        })
     }
 
     /**
@@ -67,16 +65,21 @@ export class TCPSocket {
     }
 
     /**
-     * Trigger when `message` is revieve by the socket
+     * Trigger when `message` is recieve by the socket
      * @param message The message to listen for
      * @callback The callback when `message` is receive
      * */
-    onMsg(message: string, callback: (msg: OSCMsg) => void) {
-        this.on("message", (msg: OSCSerMsg) => {
-            if (msg.address === message) {
-                callback(serMsgToMsg(msg))
-            }
-        })
+    onMsg(message: string, callback: listenerFunc) {
+        this.server.on(message, callback) // a new listener for it
+        this.listener.add(message)
+    }
+
+    /**
+     * A one time trigger when `message` is recieve
+     * */
+    onceMsg(message: string, callback: listenerFunc) {
+        this.server.once(message, callback)
+        this.listener.add(message)
     }
 
     /**
