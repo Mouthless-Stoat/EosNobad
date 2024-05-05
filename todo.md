@@ -1,0 +1,2 @@
+-   [ ] Channel Manager to manage channel
+-   [ ] Send key to the consoole

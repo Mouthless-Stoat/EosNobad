@@ -18,7 +18,7 @@ export class EosConsole {
     port: number
     server: TCPSocket
 
-    private _commandLine!: string
+    private _commandLine: string = ""
 
     get commandLine() {
         return this._commandLine
@@ -34,7 +34,7 @@ export class EosConsole {
      * Connect to the eos console using the host and port define earlier
      * */
     async connect() {
-        this.server.onMsg("/eos/out/cmd", msg => {
+        this.listen("/eos/out/cmd", msg => {
             this._commandLine = msg[0] as string
         })
         this.server.connect()
@@ -86,6 +86,10 @@ export class EosConsole {
                 res(msg),
             ),
         )
+    }
+
+    async listen(message: string, callback: listenerFunc) {
+        this.server.onMsg(message, callback)
     }
 
     /**

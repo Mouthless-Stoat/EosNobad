@@ -9,6 +9,7 @@
         "typescript": "^5.0.0"
     },
     "dependencies": {
+        "console-gui-tools": "^3.5.0",
         "osc": "^2.4.4"
     }
 }
